@@ -7,11 +7,11 @@ development:
   DEBUG: True
 #  SQLALCHEMY_DATABASE_URI: 'sqlite://'
 #  SQLALCHEMY_DATABASE_URI: 'sqlite:///device_db.sqlite'
-  SQLALCHEMY_DATABASE_URI: 'mysql://root:A13579zxc@localhost/steamdb'
+  SQLALCHEMY_DATABASE_URI: 'mysql://igor:Q13579zxc@cloudlab1.mysql.database.azure.com:3306/steamdb'
 
 production:
   <<: *common
-  SQLALCHEMY_DATABASE_URI: 'mysql://root:A13579zxc@localhost/steamdb'
+  SQLALCHEMY_DATABASE_URI: 'mysql://igor:Q13579zxc@cloudlab1.mysql.database.azure.com:3306/steamdb'
 
 
 ADDITIONAL_CONFIG:
