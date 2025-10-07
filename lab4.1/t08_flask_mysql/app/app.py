@@ -29,14 +29,14 @@ if __name__ == '__main__':
         config_data_dict = yaml.load(yaml_file, Loader=yaml.FullLoader)
         additional_config = config_data_dict[ADDITIONAL_CONFIG]
 
-       # --- Вибір конфігурації ---
-        config_data = config_data_dict[DEVELOPMENT] if flask_env == DEVELOPMENT else config_data_dict[PRODUCTION]
-        app = create_app(config_data, additional_config)
-
-# --- Запуск сервера ---
         if flask_env == DEVELOPMENT:
-            app.run(host=HOST, port=DEVELOPMENT_PORT, debug=os.environ.get("FLASK_DEBUG") == "1")
-        else:
-            serve(app, host=HOST, port=PRODUCTION_PORT)
+            config_data = config_data_dict[DEVELOPMENT]
+            create_app(config_data, additional_config).run(port=DEVELOPMENT_PORT, debug=True)
 
-       
+        elif flask_env == PRODUCTION:
+            config_data = config_data_dict[PRODUCTION]
+            serve(create_app(config_data, additional_config), host=HOST, port=PRODUCTION_PORT)
+
+        else:
+            raise ValueError(f"Check OS environment variable '{FLASK_ENV}'")
+
