@@ -13,12 +13,12 @@ PRODUCTION = "production"
 FLASK_ENV = "FLASK_ENV"
 ADDITIONAL_CONFIG = "ADDITIONAL_CONFIG"
 
-if __name__ == 'main':
+if __name__ == '__main__':
     flask_env = os.environ.get(FLASK_ENV, DEVELOPMENT).lower()
 
     # --- Визначаємо корінь проєкту lab4.1 ---
-    # file = шлях до цього файлу (app.py)
-    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(file))))
+    # __file__ = шлях до цього файлу (app.py)
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     # base_dir тепер = C:\WebLabs_2course-LabWorkDataBase\WebLabs_2course-LabWorkDataBase\lab4.1
 
     # --- Шлях до app.yml ---
