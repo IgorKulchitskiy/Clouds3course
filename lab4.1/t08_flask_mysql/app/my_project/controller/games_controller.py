@@ -112,56 +112,6 @@ def create_game():
                     "ReleaseDate": game.ReleaseDate}), 201
 
 
-@games_bp.route('/<int:game_id>', methods=['PUT'])
-def update_game(game_id):
-    """
-    Update a game by ID
-    ---
-    tags:
-      - Games
-    parameters:
-      - name: game_id
-        in: path
-        type: integer
-        required: true
-        description: "ID of the game"
-      - name: body
-        in: body
-        required: true
-        schema:
-          type: object
-          properties:
-            GameName:
-              type: string
-            PublisherID:
-              type: integer
-            ReleaseDate:
-              type: string
-    responses:
-      200:
-        description: "Game updated"
-        schema:
-          type: object
-          properties:
-            GameID:
-              type: integer
-            GameName:
-              type: string
-            PublisherID:
-              type: integer
-            ReleaseDate:
-              type: string
-      404:
-        description: "Game not found"
-    """
-    data = request.get_json()
-    game = GamesService.update_game(game_id, data['GameName'], data['PublisherID'], data.get('ReleaseDate'))
-    if game:
-        return jsonify({"GameID": game.GameID, "GameName": game.GameName, "PublisherID": game.PublisherID,
-                        "ReleaseDate": game.ReleaseDate})
-    return jsonify({"error": "Game not found"}), 404
-
-
 
 
 @games_bp.route('/statistics', methods=['GET'])
