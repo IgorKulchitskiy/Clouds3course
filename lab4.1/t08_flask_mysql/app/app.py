@@ -1,11 +1,10 @@
 import sys
 import os
 from waitress import serve
-import yaml
+import yaml 
 
 from t08_flask_mysql.app.my_project import create_app
 
-# --- Константи ---
 DEVELOPMENT_PORT = 5000
 PRODUCTION_PORT = 8080
 HOST = "0.0.0.0"
@@ -18,7 +17,9 @@ if __name__ == '__main__':
     flask_env = os.environ.get(FLASK_ENV, DEVELOPMENT).lower()
 
     # --- Визначаємо корінь проєкту lab4.1 ---
+    # __file__ = шлях до цього файлу (app.py)
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    # base_dir тепер = C:\WebLabs_2course-LabWorkDataBase\WebLabs_2course-LabWorkDataBase\lab4.1
 
     # --- Шлях до app.yml ---
     config_yaml_path = os.path.join(base_dir, 'config', 'app.yml')
@@ -30,15 +31,11 @@ if __name__ == '__main__':
 
         if flask_env == DEVELOPMENT:
             config_data = config_data_dict[DEVELOPMENT]
-            app = create_app(config_data, additional_config)
-            print("🚀 Flask running in DEVELOPMENT mode with debug=True")
-            app.run(host=HOST, port=DEVELOPMENT_PORT, debug=True, use_reloader=True)
+            create_app(config_data, additional_config).run(port=DEVELOPMENT_PORT, debug=True)
 
         elif flask_env == PRODUCTION:
             config_data = config_data_dict[PRODUCTION]
-            app = create_app(config_data, additional_config)
-            print("🌐 Flask running in PRODUCTION mode via Waitress")
-            serve(app, host=HOST, port=PRODUCTION_PORT)
+            serve(create_app(config_data, additional_config), host=HOST, port=PRODUCTION_PORT)
 
         else:
             raise ValueError(f"Check OS environment variable '{FLASK_ENV}'")
