@@ -1,4 +1,3 @@
-import sys
 import os
 import yaml
 from waitress import serve
@@ -9,11 +8,8 @@ PRODUCTION_PORT = 8080
 HOST = "0.0.0.0"
 DEVELOPMENT = "development"
 PRODUCTION = "production"
-FLASK_ENV = "FLASK_ENV"
+FLASK_ENV = os.environ.get("FLASK_ENV", DEVELOPMENT).lower()
 ADDITIONAL_CONFIG = "ADDITIONAL_CONFIG"
-
-# --- Визначаємо середовище ---
-flask_env = os.environ.get(FLASK_ENV, DEVELOPMENT).lower()
 
 # --- Визначаємо корінь проєкту lab4.1 ---
 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,14 +21,18 @@ with open(config_yaml_path, "r", encoding='utf-8') as yaml_file:
     additional_config = config_data_dict[ADDITIONAL_CONFIG]
 
 # --- Вибір конфігурації ---
-config_data = config_data_dict[DEVELOPMENT] if flask_env == DEVELOPMENT else config_data_dict[PRODUCTION]
+config_data = config_data_dict[DEVELOPMENT] if FLASK_ENV == DEVELOPMENT else config_data_dict[PRODUCTION]
 
 # --- Створення додатку ---
 app = create_app(config_data, additional_config)
 
+# --- Debug для development ---
+if FLASK_ENV == DEVELOPMENT:
+    app.debug = True
+
+# --- Запуск через python app.py ---
 if __name__ == "__main__":
-    if flask_env == DEVELOPMENT:
-        # debug жорстко вкл.
+    if FLASK_ENV == DEVELOPMENT:
         app.run(host=HOST, port=DEVELOPMENT_PORT, debug=True)
     else:
         serve(app, host=HOST, port=PRODUCTION_PORT)
