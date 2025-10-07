@@ -7,7 +7,7 @@ games_bp = Blueprint('games', __name__)
 @games_bp.route('/', methods=['GET'])
 def get_all_games():
     """
-    Gett fulldfd games
+    Gett fulldfdDsdsddssdds games
     ---
     tags:
       - Games
