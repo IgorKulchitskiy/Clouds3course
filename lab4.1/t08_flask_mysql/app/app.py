@@ -9,9 +9,9 @@ HOST = "0.0.0.0"
 DEVELOPMENT_PORT = 5000
 PRODUCTION_PORT = 8080
 
-# --- Жорстке встановлення середовища ---
-FLASK_ENV = DEVELOPMENT  # завжди development для debug
-DEBUG_MODE = True        # debug увімкнено
+# --- Визначаємо середовище ---
+FLASK_ENV = os.environ.get("FLASK_ENV", DEVELOPMENT).lower()
+FLASK_DEBUG = os.environ.get("FLASK_DEBUG", "1")  # <- заставляємо debug увімкнутися
 
 # --- Корінь проєкту ---
 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -28,12 +28,6 @@ config_data = config_data_dict[DEVELOPMENT] if FLASK_ENV == DEVELOPMENT else con
 # --- Створення додатку ---
 app = create_app(config_data, additional_config)
 
-# --- Примусове увімкнення debug ---
-app.debug = DEBUG_MODE
-
-# --- Для запуску через python app.py ---
-if __name__ == "__main__":
-    if FLASK_ENV == DEVELOPMENT:
-        app.run(host=HOST, port=DEVELOPMENT_PORT, debug=DEBUG_MODE)
-    else:
-        serve(app, host=HOST, port=PRODUCTION_PORT)
+# --- Вмикаємо debug глобально ---
+if FLASK_ENV == DEVELOPMENT:
+    app.debug = True
