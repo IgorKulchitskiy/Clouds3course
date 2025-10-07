@@ -162,29 +162,6 @@ def update_game(game_id):
     return jsonify({"error": "Game not found"}), 404
 
 
-@games_bp.route('/<int:game_id>', methods=['DELETE'])
-def delete_game(game_id):
-    """
-    Delete a game by ID
-    ---
-    tags:
-      - Games
-    parameters:
-      - name: game_id
-        in: path
-        type: integer
-        required: true
-        description: "ID of the game"
-    responses:
-      204:
-        description: "Game deleted"
-      404:
-        description: "Game not found"
-    """
-    success = GamesService.delete_game(game_id)
-    if success:
-        return jsonify({"message": "Game deleted"}), 204
-    return jsonify({"error": "Game not found"}), 404
 
 
 @games_bp.route('/statistics', methods=['GET'])
