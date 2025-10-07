@@ -32,6 +32,7 @@ app = create_app(config_data, additional_config)
 
 if __name__ == "__main__":
     if flask_env == DEVELOPMENT:
-        app.run(host=HOST, port=DEVELOPMENT_PORT, debug=os.environ.get("FLASK_DEBUG") == "1")
+        # debug жорстко вкл.
+        app.run(host=HOST, port=DEVELOPMENT_PORT, debug=True)
     else:
         serve(app, host=HOST, port=PRODUCTION_PORT)
