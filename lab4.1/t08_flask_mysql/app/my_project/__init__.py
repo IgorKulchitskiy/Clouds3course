@@ -1,6 +1,7 @@
 import os
 import secrets
-from typing import Dict, Any
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 from flask import Flask
 from flasgger import Swagger
@@ -13,6 +14,10 @@ SECRET_KEY = "SECRET_KEY"
 SQLALCHEMY_DATABASE_URI = "SQLALCHEMY_DATABASE_URI"
 MYSQL_ROOT_USER = "MYSQL_ROOT_USER"
 MYSQL_ROOT_PASSWORD = "MYSQL_ROOT_PASSWORD"
+MYSQL_SSL_CA = "MYSQL_SSL_CA"
+MYSQL_SSL_MODE = "MYSQL_SSL_MODE"
+SQLALCHEMY_ENGINE_OPTIONS = "SQLALCHEMY_ENGINE_OPTIONS"
+DEFAULT_SSL_MODE = "REQUIRED"
 
 
 def create_app(app_config: Dict[str, Any], additional_config: Dict[str, Any]) -> Flask:
@@ -63,3 +68,32 @@ def _process_input_config(app_config: Dict[str, Any], additional_config: Dict[st
 
     # Формуємо фінальний URI
     app_config[SQLALCHEMY_DATABASE_URI] = db_template.format(user=root_user, password=root_password)
+    _configure_ssl(app_config, additional_config)
+
+
+def _configure_ssl(app_config: Dict[str, Any], additional_config: Dict[str, Any]) -> None:
+    ssl_ca_path = _resolve_config_value(MYSQL_SSL_CA, additional_config)
+    ssl_mode = _resolve_config_value(MYSQL_SSL_MODE, additional_config, DEFAULT_SSL_MODE)
+
+    if not ssl_ca_path:
+        return
+
+    ssl_path = Path(ssl_ca_path)
+    if not ssl_path.exists():
+        raise FileNotFoundError(f"SSL CA file not found at {ssl_ca_path}")
+
+    engine_options = dict(app_config.get(SQLALCHEMY_ENGINE_OPTIONS, {}))
+    connect_args = dict(engine_options.get("connect_args", {}))
+    ssl_options = dict(connect_args.get("ssl", {}))
+
+    ssl_options.setdefault("ca", ssl_ca_path)
+    if ssl_mode:
+        ssl_options.setdefault("ssl_mode", ssl_mode)
+
+    connect_args["ssl"] = ssl_options
+    engine_options["connect_args"] = connect_args
+    app_config[SQLALCHEMY_ENGINE_OPTIONS] = engine_options
+
+
+def _resolve_config_value(key: str, additional_config: Dict[str, Any], default: Optional[str] = None) -> Optional[str]:
+    return os.getenv(key) or additional_config.get(key) or default

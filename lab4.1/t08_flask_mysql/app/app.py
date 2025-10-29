@@ -1,33 +1,60 @@
 import os
+from pathlib import Path
+from typing import Any, Dict, Tuple
+
 import yaml
-from waitress import serve
+
+from flask import Flask
 from t08_flask_mysql.app.my_project import create_app
 
-DEVELOPMENT = "development"
-PRODUCTION = "production"
-HOST = "0.0.0.0"
-DEVELOPMENT_PORT = 5000
-PRODUCTION_PORT = 8080
+ENVIRONMENT_VARIABLE = "FLASK_ENV"
+DEVELOPMENT_ENVIRONMENT = "development"
+PRODUCTION_ENVIRONMENT = "production"
+ADDITIONAL_CONFIG_SECTION = "ADDITIONAL_CONFIG"
+CONFIG_RELATIVE_PATH = Path(__file__).resolve().parents[2] / "config" / "app.yml"
+DEFAULT_HOST = "0.0.0.0"
+DEFAULT_DEVELOPMENT_PORT = 5000
 
-# --- Визначаємо середовище ---
-FLASK_ENV = os.environ.get("FLASK_ENV", DEVELOPMENT).lower()
-FLASK_DEBUG = os.environ.get("FLASK_DEBUG", "1")  # <- заставляємо debug увімкнутися
 
-# --- Корінь проєкту ---
-base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-config_yaml_path = os.path.join(base_dir, 'config', 'app.yml')
+def _load_config() -> Tuple[Dict[str, Any], Dict[str, Any], str]:
+    environment = os.getenv(ENVIRONMENT_VARIABLE, DEVELOPMENT_ENVIRONMENT).lower()
+    config_payload = _read_yaml(CONFIG_RELATIVE_PATH)
+    environment_config, additional_config = _select_environment_config(config_payload, environment)
+    return environment_config, additional_config, environment
 
-# --- Завантаження YAML ---
-with open(config_yaml_path, "r", encoding='utf-8') as yaml_file:
-    config_data_dict = yaml.load(yaml_file, Loader=yaml.FullLoader)
-    additional_config = config_data_dict["ADDITIONAL_CONFIG"]
 
-# --- Вибір конфігурації ---
-config_data = config_data_dict[DEVELOPMENT] if FLASK_ENV == DEVELOPMENT else config_data_dict[PRODUCTION]
+def _read_yaml(file_path: Path) -> Dict[str, Any]:
+    if not file_path.exists():
+        raise FileNotFoundError(f"Config file not found: {file_path}")
 
-# --- Створення додатку ---
-app = create_app(config_data, additional_config)
+    with file_path.open("r", encoding="utf-8") as yaml_file:
+        return yaml.safe_load(yaml_file) or {}
 
-# --- Вмикаємо debug глобально ---
-if FLASK_ENV == DEVELOPMENT:
-    app.debug = True
+
+def _select_environment_config(config_payload: Dict[str, Any], environment: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    if environment in config_payload:
+        environment_config = config_payload[environment]
+    elif PRODUCTION_ENVIRONMENT in config_payload:
+        environment_config = config_payload[PRODUCTION_ENVIRONMENT]
+    else:
+        raise ValueError(f"Unsupported FLASK_ENV '{environment}' in {CONFIG_RELATIVE_PATH}")
+
+    additional_config = config_payload.get(ADDITIONAL_CONFIG_SECTION, {})
+    return environment_config, additional_config
+
+
+def _build_application() -> Flask:
+    app_config, additional_config, environment = _load_config()
+    application = create_app(app_config, additional_config)
+
+    if environment == DEVELOPMENT_ENVIRONMENT:
+        application.debug = True
+
+    return application
+
+
+app = _build_application()
+
+
+if __name__ == "__main__":
+    app.run(host=DEFAULT_HOST, port=DEFAULT_DEVELOPMENT_PORT, debug=app.debug)
